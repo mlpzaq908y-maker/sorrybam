@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ขอโทษนะที่รัก</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body {
+    height:100%; overflow:hidden;
+    font-family:'Kanit','Segoe UI',sans-serif;
+    background: linear-gradient(160deg,#ffe3ec,#fff5e6 60%,#ffe8f0);
+    color:#7a3b52;
+  }
+  @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap');
+
+  #hearts {
+    position:fixed; inset:0; pointer-events:none; z-index:0;
+  }
+  .heart {
+    position:absolute; bottom:-10%; font-size:22px; opacity:0.55;
+    animation: floatUp linear infinite;
+    color:#ff9ec2;
+  }
+  @keyframes floatUp {
+    0% { transform: translateY(0) rotate(0deg); opacity:0; }
+    10% { opacity:0.6; }
+    100% { transform: translateY(-110vh) rotate(360deg); opacity:0; }
+  }
+
+  .screen {
+    position:fixed; inset:0; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; text-align:center;
+    padding:32px 24px; z-index:1;
+    opacity:0; pointer-events:none; transform:scale(0.96);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  .screen.active { opacity:1; pointer-events:auto; transform:scale(1); }
+
+  .card {
+    background:rgba(255,255,255,0.7);
+    backdrop-filter: blur(6px);
+    border-radius:24px;
+    padding:32px 24px;
+    max-width:380px;
+    width:100%;
+    box-shadow:0 8px 30px rgba(255,150,180,0.25);
+    border:1px solid rgba(255,255,255,0.6);
+  }
+
+  h1 { font-size:1.4rem; font-weight:600; margin-bottom:12px; color:#e05e8a; }
+  p { font-size:1rem; line-height:1.7; font-weight:300; }
+
+  .emoji-big { font-size:3rem; margin-bottom:16px; }
+
+  button {
+    font-family:inherit;
+    border:none; cursor:pointer;
+    font-size:1rem; font-weight:500;
+    padding:14px 30px;
+    border-radius:999px;
+    margin-top:22px;
+    background:linear-gradient(135deg,#ff8fb3,#ff6f9c);
+    color:white;
+    box-shadow:0 6px 18px rgba(255,111,156,0.4);
+    transition: transform 0.15s ease;
+  }
+  button:active { transform:scale(0.94); }
+
+  /* letter screen */
+  #letterText {
+    text-align:left;
+    min-height:220px;
+    font-size:1.02rem;
+    line-height:1.9;
+    white-space:pre-wrap;
+  }
+  .cursor { display:inline-block; width:2px; background:#e05e8a; animation:blink 0.8s infinite; margin-left:2px; }
+  @keyframes blink { 50% { opacity:0; } }
+
+  /* forgive screen */
+  .btnRow {
+    position:relative;
+    display:flex; gap:16px; justify-content:center; margin-top:26px;
+    flex-wrap:wrap;
+    min-height:110px;
+  }
+  #angryBtn {
+    position:relative;
+    background:linear-gradient(135deg,#d9d9d9,#bfbfbf);
+    color:#5a5a5a;
+    box-shadow:0 6px 14px rgba(0,0,0,0.15);
+  }
+  #forgiveBtn { position:relative; }
+
+  /* final screen */
+  .final-emoji { font-size:3.2rem; margin-bottom:10px; animation:pop 0.5s ease; }
+  @keyframes pop { 0%{transform:scale(0);} 70%{transform:scale(1.15);} 100%{transform:scale(1);} }
+  .final-msg { font-size:1.15rem; font-weight:500; color:#e05e8a; margin-bottom:8px; }
+
+  .confetti {
+    position:fixed; top:-10px; font-size:20px; z-index:5; pointer-events:none;
+    animation: fall linear forwards;
+  }
+  @keyframes fall {
+    to { transform: translateY(110vh) rotate(360deg); opacity:0.3; }
+  }
+</style>
+</head>
+<body>
+
+<div id="hearts"></div>
+
+<!-- Screen 1: Opening -->
+<div class="screen active" id="screen1">
+  <div class="card">
+    <div class="emoji-big">🥺💗</div>
+    <h1>ที่รักก...</h1>
+    <p>เค้าขอโทษนะคะที่รักก<br>คุยกันปกติได้มั้ยย</p>
+    <button onclick="goTo('screen2')">ได้ค่ะ อ่านต่อ 🎀</button>
+  </div>
+</div>
+
+<!-- Screen 2: Letter -->
+<div class="screen" id="screen2">
+  <div class="card">
+    <h1>จดหมายถึงอ้วน 💌</h1>
+    <div id="letterText"></div>
+    <button id="letterNextBtn" onclick="goTo('screen3')" style="display:none;">ไปต่อ 🎀</button>
+  </div>
+</div>
+
+<!-- Screen 3: Forgive -->
+<div class="screen" id="screen3">
+  <div class="card">
+    <div class="emoji-big">🙏💕</div>
+    <h1>ยกโทษให้เค้าได้มั้ยยย</h1>
+    <p>กดปุ่มด้านล่างทีน้า~</p>
+    <div class="btnRow" id="btnRow">
+      <button id="forgiveBtn" onclick="forgive()">ให้อภัย 💗</button>
+      <button id="angryBtn">ยังงอนอยู่ 😤</button>
+    </div>
+  </div>
+</div>
+
+<!-- Screen 4: Final -->
+<div class="screen" id="screen4">
+  <div class="card">
+    <div class="final-emoji">🥰🎉</div>
+    <div class="final-msg">เย้ยย ไม่ต้องงอมแย้วนะะ</div>
+    <p>คุยกันปกติแย้วว เล่นเกมกันนน<br>เค้ารักอ้วนที่สุดเยยนะะ 💗</p>
+  </div>
+</div>
+
+<script>
+// floating hearts background
+const heartsContainer = document.getElementById('hearts');
+const heartEmojis = ['💗','💕','🩷','💖','🌸'];
+for (let i=0;i<18;i++){
+  const h = document.createElement('div');
+  h.className='heart';
+  h.textContent = heartEmojis[Math.floor(Math.random()*heartEmojis.length)];
+  h.style.left = Math.random()*100+'%';
+  h.style.animationDuration = (7+Math.random()*8)+'s';
+  h.style.animationDelay = (Math.random()*8)+'s';
+  h.style.fontSize = (16+Math.random()*18)+'px';
+  heartsContainer.appendChild(h);
+}
+
+function goTo(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(id==='screen2') startTyping();
+}
+
+// typewriter letter
+const letterFull = `เค้าขอโทษนะคะอ้วน ที่เค้าไม่ได้ตั้งรูปโปรไฟล์กะอ้วนงะะ
+ตอนแรกเค้าว่าจาตั้ง แต่พอถ่ายออกมาเค้ามองว่ามันแปลกแย้วกัวมันไม่เข้ากะของอ้วนงะะ
+
+เค้าขอโทษจริงๆนะะ คุยกันเหมือนเดิมได้มั้ย
+มะต้องงอมนะคะอ้วนนะ 💗`;
+
+let typed = false;
+function startTyping(){
+  if(typed) return;
+  typed = true;
+  const el = document.getElementById('letterText');
+  const btn = document.getElementById('letterNextBtn');
+  let i = 0;
+  el.innerHTML = '<span class="cursor">&nbsp;</span>';
+  function type(){
+    if(i < letterFull.length){
+      el.innerHTML = letterFull.slice(0,i+1).replace(/\n/g,'<br>') + '<span class="cursor">&nbsp;</span>';
+      i++;
+      setTimeout(type, 38);
+    } else {
+      el.innerHTML = letterFull.replace(/\n/g,'<br>');
+      btn.style.display = 'inline-block';
+    }
+  }
+  type();
+}
+
+// dodging angry button
+const angryBtn = document.getElementById('angryBtn');
+const btnRow = document.getElementById('btnRow');
+function dodge(){
+  const rowRect = btnRow.getBoundingClientRect();
+  const maxX = rowRect.width - angryBtn.offsetWidth;
+  const maxY = rowRect.height - angryBtn.offsetHeight;
+  const x = Math.random()*Math.max(maxX,0);
+  const y = Math.random()*Math.max(maxY,0);
+  angryBtn.style.position = 'absolute';
+  angryBtn.style.left = x+'px';
+  angryBtn.style.top = y+'px';
+}
+angryBtn.addEventListener('mouseenter', dodge);
+angryBtn.addEventListener('touchstart', function(e){ e.preventDefault(); dodge(); }, {passive:false});
+angryBtn.addEventListener('click', function(e){ e.preventDefault(); dodge(); });
+
+function forgive(){
+  goTo('screen4');
+  launchConfetti();
+}
+
+function launchConfetti(){
+  const emojis = ['💗','🎉','💕','🌸','✨','🩷'];
+  for(let i=0;i<40;i++){
+    setTimeout(()=>{
+      const c = document.createElement('div');
+      c.className='confetti';
+      c.textContent = emojis[Math.floor(Math.random()*emojis.length)];
+      c.style.left = Math.random()*100+'%';
+      c.style.fontSize = (14+Math.random()*16)+'px';
+      c.style.animationDuration = (2.5+Math.random()*2)+'s';
+      document.body.appendChild(c);
+      setTimeout(()=>c.remove(), 5000);
+    }, i*60);
+  }
+}
+</script>
+</body>
+</html>
